@@ -1,0 +1,308 @@
+
+
+
+
+CopyData (F & B)
+Byte1('d')
+Identifies the message as COPY data.
+
+Int32
+Length of message contents in bytes, including self.
+
+Byten
+Data that forms part of a COPY data stream. Messages sent from the backend will always correspond to single data rows, but messages sent by frontends might divide the data stream arbitrarily.
+
+CopyDone (F & B)
+Byte1('c')
+Identifies the message as a COPY-complete indicator.
+
+Int32(4)
+Length of message contents in bytes, including self.
+
+CopyFail (F)
+Byte1('f')
+Identifies the message as a COPY-failure indicator.
+
+Int32
+Length of message contents in bytes, including self.
+
+String
+An error message to report as the cause of failure.
+
+CopyInResponse (B)
+Byte1('G')
+Identifies the message as a Start Copy In response. The frontend must now send copy-in data (if not prepared to do so, send a CopyFail message).
+
+Int32
+Length of message contents in bytes, including self.
+
+Int8
+0 indicates the overall COPY format is textual (rows separated by newlines, columns separated by separator characters, etc). 1 indicates the overall copy format is binary (similar to DataRow format). See COPY for more information.
+
+Int16
+The number of columns in the data to be copied (denoted N below).
+
+Int16[N]
+The format codes to be used for each column. Each must presently be zero (text) or one (binary). All must be zero if the overall copy format is textual.
+
+CopyOutResponse (B)
+Byte1('H')
+Identifies the message as a Start Copy Out response. This message will be followed by copy-out data.
+
+Int32
+Length of message contents in bytes, including self.
+
+Int8
+0 indicates the overall COPY format is textual (rows separated by newlines, columns separated by separator characters, etc). 1 indicates the overall copy format is binary (similar to DataRow format). See COPY for more information.
+
+Int16
+The number of columns in the data to be copied (denoted N below).
+
+Int16[N]
+The format codes to be used for each column. Each must presently be zero (text) or one (binary). All must be zero if the overall copy format is textual.
+
+CopyBothResponse (B)
+Byte1('W')
+Identifies the message as a Start Copy Both response. This message is used only for Streaming Replication.
+
+Int32
+Length of message contents in bytes, including self.
+
+Int8
+0 indicates the overall COPY format is textual (rows separated by newlines, columns separated by separator characters, etc). 1 indicates the overall copy format is binary (similar to DataRow format). See COPY for more information.
+
+Int16
+The number of columns in the data to be copied (denoted N below).
+
+Int16[N]
+The format codes to be used for each column. Each must presently be zero (text) or one (binary). All must be zero if the overall copy format is textual.
+
+
+EmptyQueryResponse (B)
+Byte1('I')
+Identifies the message as a response to an empty query string. (This substitutes for CommandComplete.)
+
+Int32(4)
+Length of message contents in bytes, including self.
+
+ErrorResponse (B)
+Byte1('E')
+Identifies the message as an error.
+
+Int32
+Length of message contents in bytes, including self.
+
+The message body consists of one or more identified fields, followed by a zero byte as a terminator. Fields can appear in any order. For each field there is the following:
+
+Byte1
+A code identifying the field type; if zero, this is the message terminator and no string follows. The presently defined field types are listed in Section 53.8. Since more field types might be added in future, frontends should silently ignore fields of unrecognized type.
+
+String
+The field value.
+
+Execute (F)
+Byte1('E')
+Identifies the message as an Execute command.
+
+Int32
+Length of message contents in bytes, including self.
+
+String
+The name of the portal to execute (an empty string selects the unnamed portal).
+
+Int32
+Maximum number of rows to return, if portal contains a query that returns rows (ignored otherwise). Zero denotes “no limit”.
+
+Flush (F)
+Byte1('H')
+Identifies the message as a Flush command.
+
+Int32(4)
+Length of message contents in bytes, including self.
+
+FunctionCall (F)
+Byte1('F')
+Identifies the message as a function call.
+
+Int32
+Length of message contents in bytes, including self.
+
+Int32
+Specifies the object ID of the function to call.
+
+Int16
+The number of argument format codes that follow (denoted C below). This can be zero to indicate that there are no arguments or that the arguments all use the default format (text); or one, in which case the specified format code is applied to all arguments; or it can equal the actual number of arguments.
+
+Int16[C]
+The argument format codes. Each must presently be zero (text) or one (binary).
+
+Int16
+Specifies the number of arguments being supplied to the function.
+
+Next, the following pair of fields appear for each argument:
+
+Int32
+The length of the argument value, in bytes (this count does not include itself). Can be zero. As a special case, -1 indicates a NULL argument value. No value bytes follow in the NULL case.
+
+Byten
+The value of the argument, in the format indicated by the associated format code. n is the above length.
+
+After the last argument, the following field appears:
+
+Int16
+The format code for the function result. Must presently be zero (text) or one (binary).
+
+FunctionCallResponse (B)
+Byte1('V')
+Identifies the message as a function call result.
+
+Int32
+Length of message contents in bytes, including self.
+
+Int32
+The length of the function result value, in bytes (this count does not include itself). Can be zero. As a special case, -1 indicates a NULL function result. No value bytes follow in the NULL case.
+
+Byten
+The value of the function result, in the format indicated by the associated format code. n is the above length.
+
+GSSResponse (F)
+Byte1('p')
+Identifies the message as a GSSAPI or SSPI response. Note that this is also used for SASL and password response messages. The exact message type can be deduced from the context.
+
+Int32
+Length of message contents in bytes, including self.
+
+Byten
+GSSAPI/SSPI specific message data.
+
+NegotiateProtocolVersion (B)
+Byte1('v')
+Identifies the message as a protocol version negotiation message.
+
+Int32
+Length of message contents in bytes, including self.
+
+Int32
+Newest minor protocol version supported by the server for the major protocol version requested by the client.
+
+Int32
+Number of protocol options not recognized by the server.
+
+Then, for protocol option not recognized by the server, there is the following:
+
+String
+The option name.
+
+NoData (B)
+Byte1('n')
+Identifies the message as a no-data indicator.
+
+Int32(4)
+Length of message contents in bytes, including self.
+
+NoticeResponse (B)
+Byte1('N')
+Identifies the message as a notice.
+
+Int32
+Length of message contents in bytes, including self.
+
+The message body consists of one or more identified fields, followed by a zero byte as a terminator. Fields can appear in any order. For each field there is the following:
+
+Byte1
+A code identifying the field type; if zero, this is the message terminator and no string follows. The presently defined field types are listed in Section 53.8. Since more field types might be added in future, frontends should silently ignore fields of unrecognized type.
+
+String
+The field value.
+
+NotificationResponse (B)
+Byte1('A')
+Identifies the message as a notification response.
+
+Int32
+Length of message contents in bytes, including self.
+
+Int32
+The process ID of the notifying backend process.
+
+String
+The name of the channel that the notify has been raised on.
+
+String
+The “payload” string passed from the notifying process.
+
+
+ParameterStatus (B)
+Byte1('S')
+Identifies the message as a run-time parameter status report.
+
+Int32
+Length of message contents in bytes, including self.
+
+String
+The name of the run-time parameter being reported.
+
+String
+The current value of the parameter.
+
+PasswordMessage (F)
+Byte1('p')
+Identifies the message as a password response. Note that this is also used for GSSAPI, SSPI and SASL response messages. The exact message type can be deduced from the context.
+
+Int32
+Length of message contents in bytes, including self.
+
+String
+The password (encrypted, if requested).
+
+PortalSuspended (B)
+Byte1('s')
+Identifies the message as a portal-suspended indicator. Note this only appears if an Execute message's row-count limit was reached.
+
+Int32(4)
+Length of message contents in bytes, including self.
+
+SASLInitialResponse (F)
+Byte1('p')
+Identifies the message as an initial SASL response. Note that this is also used for GSSAPI, SSPI and password response messages. The exact message type is deduced from the context.
+
+Int32
+Length of message contents in bytes, including self.
+
+String
+Name of the SASL authentication mechanism that the client selected.
+
+Int32
+Length of SASL mechanism specific "Initial Client Response" that follows, or -1 if there is no Initial Response.
+
+Byten
+SASL mechanism specific "Initial Response".
+
+SASLResponse (F)
+Byte1('p')
+Identifies the message as a SASL response. Note that this is also used for GSSAPI, SSPI and password response messages. The exact message type can be deduced from the context.
+
+Int32
+Length of message contents in bytes, including self.
+
+Byten
+SASL mechanism specific message data.
+
+SSLRequest (F)
+Int32(8)
+Length of message contents in bytes, including self.
+
+Int32(80877103)
+The SSL request code. The value is chosen to contain 1234 in the most significant 16 bits, and 5679 in the least significant 16 bits. (To avoid confusion, this code must not be the same as any protocol version number.)
+
+
+// STARTUP MESSAGE
+
+
+
+Terminate (F)
+Byte1('X')
+Identifies the message as a termination.
+
+Int32(4)
+Length of message contents in bytes, including self.
