@@ -13,8 +13,8 @@ type MessageHandler interface {
 	HandleDescribe(*_Messenger) error
 }
 
-type _BaseHandler struct{
-	ResponseLoader *_ResponseLoader
+type _BaseHandler struct {
+	ResponseLoader *_Responder
 }
 
 func (bh *_BaseHandler) HandleDescribe(m *_Messenger) error {
@@ -51,7 +51,6 @@ func (bh *_BaseHandler) HandleParse(m *_Messenger) error {
 	}
 
 	return nil
-
 }
 
 func (bh *_BaseHandler) HandleQuery(m *_Messenger) error {
@@ -68,9 +67,9 @@ func (bh *_BaseHandler) HandleQuery(m *_Messenger) error {
 	h.Write([]byte(msg.SQL))
 	hash := fmt.Sprintf("%X", h.Sum(nil))
 
-	response, err := bh.ResponseLoader.GetQueryResponse(hash)
-	if err != nil {
-		return err
+	response, found := bh.ResponseLoader.Responses[hash]
+	if !found {
+		return fmt.Errorf("No response found for hash %s", hash)
 	}
 
 	if err := response.Columns.write(m); err != nil {
@@ -87,7 +86,7 @@ func (bh *_BaseHandler) HandleQuery(m *_Messenger) error {
 
 	complete := &_CommandComplete{}
 	complete.selectOrCreate(1)
-	err = complete.write(m)
+	err := complete.write(m)
 	if err != nil {
 		return err
 	}

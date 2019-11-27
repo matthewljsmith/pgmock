@@ -194,7 +194,15 @@ func (session *_Session) processNextMessage() error {
 	case QueryMessageID:
 		err := session.Handler.HandleQuery(m)
 		if err != nil {
-			return fmt.Errorf("handling of Query message failed, err: %s", err)
+
+			errRes := &_ErrorResponse{Fields: []*_ErrorResponseField{
+				&_ErrorResponseField{Indicator: ErrorSeverity, Message: "ERROR"},
+				&_ErrorResponseField{Indicator: ErrorSQLStateCode, Message: "22000"},
+				&_ErrorResponseField{Indicator: ErrorMessage, Message: fmt.Sprintf("No Response for query, err: %s", err)},
+			}}
+			errRes.write(m)
+			(&_ReadyForQuery{Indicator: 'I'}).write(m)
+			// return fmt.Errorf("handling of Query message failed, err: %s", err)
 		}
 
 	case ParseMessageID:

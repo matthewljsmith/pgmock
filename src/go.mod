@@ -1,6 +1,7 @@
 module github.com/matthewljsmith/pgmock
 
 require (
+	github.com/gin-gonic/gin v1.5.0
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/jcelliott/lumber v0.0.0-20160324203708-dd349441af25 // indirect
 	github.com/matthewljsmith/govalidator v0.0.0-20190125002538-23cce9d52e64
